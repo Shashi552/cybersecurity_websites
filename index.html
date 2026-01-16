@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZERO_GEM // GLOBAL WARFARE</title>
+    <title>ZERO_GEM // SECURE INTEL</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
@@ -83,10 +83,10 @@
             box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
         }
 
-        .cyber-card:hover.card-cyan { box-shadow: 0 0 50px rgba(0, 243, 255, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.2); transform: translateY(-5px); z-index: 10; }
-        .cyber-card:hover.card-pink { box-shadow: 0 0 50px rgba(255, 0, 255, 0.5), inset 0 0 20px rgba(255, 0, 255, 0.2); transform: translateY(-5px); z-index: 10; }
-        .cyber-card:hover.card-green { box-shadow: 0 0 50px rgba(0, 255, 65, 0.5), inset 0 0 20px rgba(0, 255, 65, 0.2); transform: translateY(-5px); z-index: 10; }
-        .cyber-card:hover.card-red { box-shadow: 0 0 50px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.3); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-cyan { box-shadow: 0 0 60px rgba(0, 243, 255, 0.6), inset 0 0 20px rgba(0, 243, 255, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-pink { box-shadow: 0 0 60px rgba(255, 0, 255, 0.6), inset 0 0 20px rgba(255, 0, 255, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-green { box-shadow: 0 0 60px rgba(0, 255, 65, 0.6), inset 0 0 20px rgba(0, 255, 65, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-red { box-shadow: 0 0 60px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.3); transform: translateY(-5px); z-index: 10; }
         .cyber-card:hover.card-graveyard { box-shadow: 0 0 60px rgba(255, 0, 0, 0.7); transform: translateY(-5px); }
 
         .tool-icon-box { width: 45px; height: 45px; background: #000; border: 1px solid #333; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
@@ -98,7 +98,7 @@
         .corner-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
         .corner-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
-        /* HIGH CONTRAST MODE */
+        /* HIGH CONTRAST */
         .high-contrast .glass-panel { background: #000 !important; border: 1px solid #fff !important; backdrop-filter: none !important; box-shadow: none !important; }
         .high-contrast .cyber-card { background: #000 !important; box-shadow: none !important; }
         .high-contrast .logo-text h1, .high-contrast .logo-sub, .high-contrast .logo-box i { text-shadow: none !important; filter: none !important; }
@@ -169,7 +169,7 @@
             </div>
 
             <div class="mb-8">
-                <h3 class="text-gray-500 text-[10px] font-bold uppercase mb-2">COMMUNITY INTEL / FLAGS:</h3>
+                <h3 class="text-gray-500 text-[10px] font-bold uppercase mb-2">COMMUNITY FLAGS:</h3>
                 <div class="bg-[#0a0a0a] border border-[#222] p-4 rounded-lg h-32 overflow-y-auto mb-2 text-xs text-gray-400 space-y-2">
                     <template x-for="comment in getComments(selectedTool.id)">
                         <div class="border-b border-[#222] pb-1">
@@ -205,7 +205,7 @@
                 <div class="logo-text">
                     <h1>ZERO_GEM</h1>
                     <div class="logo-sub">
-                        v18.0.0 GLOBAL_WAR <span class="text-gray-500 ml-4" x-text="currentTime"></span>
+                        v19.0.0 SECURE_BUILD <span class="text-gray-500 ml-4" x-text="currentTime"></span>
                     </div>
                 </div>
             </div>
@@ -228,9 +228,7 @@
             <div class="flex gap-2 items-center">
                  <button @click="highContrast = !highContrast" 
                          class="p-3 border rounded-lg transition-colors text-white border-white/20 hover:bg-white/10"
-                         title="High Contrast / OLED Mode">
-                    <i class="fas fa-eye"></i>
-                 </button>
+                         title="High Contrast / OLED Mode"><i class="fas fa-eye"></i></button>
 
                  <div class="h-8 w-px bg-gray-800 mx-2"></div>
 
@@ -375,7 +373,15 @@
     </div>
 
     <script>
-        const API_URL = "SOURCE_URL";
+       
+        const SECURE_TOKEN = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6YzN4Y2ZScDJ6VkZIY1pNeEpROXpLS3Z4NzF4SUpCWUtwN1EtRUJkWkZkVnBfeS1MZXZNU09fSzhkWUY5MUwyaTMvZXhlYw=="; 
+        
+        function getEndPoint() {
+            try { return atob(SECURE_TOKEN); } 
+            catch(e) { console.error("API Decode Error"); return ""; }
+        }
+        
+        const API_URL = getEndPoint();
 
         // --- MATRIX RAIN ---
         const matrixC = document.getElementById('matrixCanvas');
@@ -410,7 +416,7 @@
                 commentsDB: JSON.parse(localStorage.getItem('zero_gem_comments') || '{}'),
 
                 termInput: '',
-                termHistory: [ { type: 'info', text: 'ZERO_GEM KERNEL v18.0 INITIATED...' }, { type: 'plain', text: 'Type "help" for commands.' } ],
+                termHistory: [ { type: 'info', text: 'ZERO_GEM KERNEL v19.0 INITIATED...' }, { type: 'plain', text: 'Type "help" for commands.' } ],
 
                 startSystem() {
                     let logs = ["KERNEL_INIT...", "LOADING_DB...", "SYSTEM_READY."];
@@ -424,6 +430,11 @@
 
                 async fetchTools(type) {
                     this.loading = true;
+                    if(!API_URL) {
+                        console.error("API URL Missing. Please Encode URL in HTML.");
+                        this.loading = false;
+                        return;
+                    }
                     try {
                         const url = type === 'dead' ? `${API_URL}?type=dead` : API_URL;
                         const res = await fetch(url);
@@ -517,10 +528,8 @@
                         ctx.strokeStyle = this.isGraveyardMode ? '#ff0000' : '#00f3ff';
                         ctx.lineWidth = 1;
                         
-                        // Draw Sphere
                         ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
                         
-                        // Draw rotating lines
                         rotation += 0.005;
                         for(let i=0; i<8; i++) {
                             ctx.beginPath();
@@ -528,7 +537,6 @@
                             ctx.stroke();
                         }
 
-                        // Draw Attack Arcs
                         ctx.strokeStyle = this.isGraveyardMode ? '#ff2a2a' : '#00ff41';
                         for(let i=0; i<3; i++) {
                             if(Math.random() > 0.9) {
