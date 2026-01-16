@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZERO_GEM // GLOBAL WARFARE</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['JetBrains Mono', 'monospace'] },
+                    colors: {
+                        deep: '#000000',
+                        panel: '#050505',
+                        neon: {
+                            cyan: '#00f3ff',
+                            pink: '#ff00ff',
+                            green: '#00ff41',
+                            red: '#ff0000',
+                        }
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 20px rgba(0, 243, 255, 0.6), inset 0 0 10px rgba(0, 243, 255, 0.2)',
+                        'glow-red': '0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 10px rgba(255, 0, 0, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000; color: #e5e5e5; overflow-x: hidden; }
+        
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.6;
+        }
+
+        /* --- LOGO --- */
+        .logo-box {
+            width: 70px; height: 70px;
+            border: 4px solid #00f3ff;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .logo-box i { font-size: 40px; color: #00f3ff; filter: drop-shadow(0 0 5px #00f3ff); transition: all 0.3s ease; }
+        
+        .logo-text h1 {
+            font-family: 'JetBrains Mono', monospace; font-style: italic; font-weight: 900; font-size: 3.5rem; line-height: 1;
+            color: #fff; text-shadow: 0 0 15px rgba(0, 243, 255, 0.8); letter-spacing: -2px; transition: all 0.3s ease;
+        }
+        .logo-sub { font-family: 'JetBrains Mono', monospace; color: #00f3ff; font-size: 12px; letter-spacing: 0.2em; font-weight: bold; margin-top: 5px; text-shadow: 0 0 5px rgba(0, 243, 255, 0.5); transition: all 0.3s ease;}
+
+        .grave-mode .logo-box { border-color: #ff0000; box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); }
+        .grave-mode .logo-box i { color: #ff0000; filter: drop-shadow(0 0 5px #ff0000); }
+        .grave-mode .logo-text h1 { text-shadow: 0 0 15px rgba(255, 0, 0, 0.8); color: #ff0000; }
+        .grave-mode .logo-sub { color: #ff0000; text-shadow: 0 0 5px rgba(255, 0, 0, 0.5); }
+
+        /* --- CARDS --- */
+        .cyber-card {
+            background: rgba(5, 5, 5, 0.95);
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .card-cyan { border: 1px solid #00f3ff; border-top-width: 4px; background: linear-gradient(180deg, rgba(0, 243, 255, 0.08) 0%, rgba(5,5,5,0.95) 100%); }
+        .card-pink { border: 1px solid #ff00ff; border-top-width: 4px; background: linear-gradient(180deg, rgba(255, 0, 255, 0.08) 0%, rgba(5,5,5,0.95) 100%); }
+        .card-green { border: 1px solid #00ff41; border-top-width: 4px; background: linear-gradient(180deg, rgba(0, 255, 65, 0.08) 0%, rgba(5,5,5,0.95) 100%); }
+        .card-red { border: 1px solid #ff0000; border-top-width: 4px; background: linear-gradient(180deg, rgba(255, 0, 0, 0.15) 0%, rgba(5,5,5,0.95) 100%); }
+        .card-graveyard { 
+            border: 1px solid #ff0000; border-top-width: 4px; 
+            background: linear-gradient(180deg, rgba(50, 0, 0, 0.2) 0%, rgba(10, 0, 0, 0.95) 100%);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+        }
+
+        .cyber-card:hover.card-cyan { box-shadow: 0 0 50px rgba(0, 243, 255, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-pink { box-shadow: 0 0 50px rgba(255, 0, 255, 0.5), inset 0 0 20px rgba(255, 0, 255, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-green { box-shadow: 0 0 50px rgba(0, 255, 65, 0.5), inset 0 0 20px rgba(0, 255, 65, 0.2); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-red { box-shadow: 0 0 50px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.3); transform: translateY(-5px); z-index: 10; }
+        .cyber-card:hover.card-graveyard { box-shadow: 0 0 60px rgba(255, 0, 0, 0.7); transform: translateY(-5px); }
+
+        .tool-icon-box { width: 45px; height: 45px; background: #000; border: 1px solid #333; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .tool-icon-box img { width: 24px; height: 24px; object-fit: contain; }
+
+        /* MODAL */
+        .modal-box { background-color: #050505; border: 1px solid #333; box-shadow: 0 0 50px rgba(0,0,0,0.9); border-radius: 16px; overflow: hidden; max-height: 90vh; overflow-y: auto;}
+        .corner-accent { position: absolute; width: 15px; height: 15px; border: 2px solid; transition: all 0.3s; }
+        .corner-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .corner-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+        /* HIGH CONTRAST MODE */
+        .high-contrast .glass-panel { background: #000 !important; border: 1px solid #fff !important; backdrop-filter: none !important; box-shadow: none !important; }
+        .high-contrast .cyber-card { background: #000 !important; box-shadow: none !important; }
+        .high-contrast .logo-text h1, .high-contrast .logo-sub, .high-contrast .logo-box i { text-shadow: none !important; filter: none !important; }
+        .high-contrast .scanlines { display: none; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+        
+        .glass-panel { background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; }
+    </style>
+</head>
+
+<body class="font-mono min-h-screen selection:bg-neon-green selection:text-black" 
+      x-data="cyberApp()" x-init="startSystem()"
+      :class="[isGraveyardMode ? 'grave-mode selection:bg-neon-red' : '', highContrast ? 'high-contrast' : '']">
+
+    <canvas id="matrixCanvas" class="fixed inset-0 z-0 opacity-20"></canvas>
+    <div class="scanlines"></div>
+
+    <div x-show="booting" class="fixed inset-0 z-[100] bg-black flex flex-col justify-end p-8" x-transition:leave.duration.300ms>
+        <div class="text-sm space-y-1" :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-cyan'">
+            <template x-for="line in bootLogs"><div x-text="line"></div></template>
+            <div class="animate-pulse">_</div>
+        </div>
+    </div>
+
+    <div x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4" style="display: none;">
+        <div class="w-full max-w-2xl p-8 modal-box relative" 
+             :class="isGraveyardMode ? 'border-neon-red shadow-glow-red' : 'border-neon-cyan shadow-glow-cyan'"
+             @click.away="modalOpen = false">
+            
+            <div class="corner-accent corner-tl" :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-cyan'"></div>
+            <div class="corner-accent corner-br" :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-cyan'"></div>
+
+            <button @click="modalOpen = false" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            
+            <div class="flex items-center gap-6 mb-8 border-b border-white/10 pb-6">
+                <div class="w-16 h-16 border-2 flex items-center justify-center bg-black shadow-lg rounded-lg"
+                     :class="isGraveyardMode ? 'border-neon-red shadow-[0_0_15px_#ff0000]' : 'border-neon-cyan shadow-[0_0_15px_#00f3ff]'">
+                    <img :src="getFavicon(selectedTool.url)" class="w-8 h-8" onerror="this.src='https://cdn-icons-png.flaticon.com/512/270/270798.png'">
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-white tracking-wider" x-text="selectedTool.name"></h2>
+                    <span class="text-xs uppercase tracking-[0.3em] font-bold" 
+                          :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-cyan'" x-text="selectedTool.category"></span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-gray-500 text-[10px] font-bold uppercase mb-2">INTELLIGENCE BRIEF:</h3>
+                <p class="text-gray-300 text-sm leading-relaxed border-l-2 pl-4 py-1" 
+                   :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-cyan'" x-text="selectedTool.description"></p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-[#0a0a0a] border border-[#222] p-4 rounded-lg">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase">RISK / RARITY</div>
+                    <div class="text-2xl font-bold mt-1" :class="getRiskColor(selectedTool.rarity)">
+                        LVL <span x-text="selectedTool.rarity"></span>
+                    </div>
+                </div>
+                <div class="bg-[#0a0a0a] border border-[#222] p-4 rounded-lg">
+                    <div class="text-[10px] text-gray-500 font-bold uppercase">DATABASE ID</div>
+                    <div class="text-lg font-mono text-gray-400 mt-1" x-text="selectedTool.id ? selectedTool.id.substring(0,8) : 'N/A'"></div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-gray-500 text-[10px] font-bold uppercase mb-2">COMMUNITY INTEL / FLAGS:</h3>
+                <div class="bg-[#0a0a0a] border border-[#222] p-4 rounded-lg h-32 overflow-y-auto mb-2 text-xs text-gray-400 space-y-2">
+                    <template x-for="comment in getComments(selectedTool.id)">
+                        <div class="border-b border-[#222] pb-1">
+                            <span class="text-neon-green font-bold">@Agent:</span> <span x-text="comment"></span>
+                        </div>
+                    </template>
+                    <div x-show="getComments(selectedTool.id).length === 0" class="italic opacity-50">No reports filed yet.</div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" x-model="newComment" @keydown.enter="addComment()" placeholder="Report status (e.g. 'Patched', 'Working')..." 
+                           class="w-full bg-black border border-[#333] text-white text-xs px-3 py-2 rounded focus:border-neon-cyan outline-none">
+                    <button @click="addComment()" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded uppercase">SEND</button>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <a :href="selectedTool.url" target="_blank" 
+                   class="flex-grow font-bold py-4 text-center hover:bg-white hover:text-black transition-colors uppercase tracking-widest text-sm flex items-center justify-center gap-2 rounded-lg"
+                   :class="isGraveyardMode ? 'bg-neon-red text-black' : 'bg-neon-cyan text-black'">
+                    <i class="fas" :class="isGraveyardMode ? 'fa-skull' : 'fa-rocket'"></i> <span x-text="isGraveyardMode ? 'PING DEAD LINK' : 'LAUNCH TOOL'"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="!booting" class="relative z-10 max-w-[1800px] mx-auto p-4 md:p-8 flex flex-col min-h-screen">
+        
+        <header class="flex flex-col xl:flex-row justify-between items-center mb-10 border-b border-white/10 pb-6 gap-6">
+            <div class="logo-container flex items-center gap-6">
+                <div class="logo-box">
+                    <i class="fas fa-biohazard"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>ZERO_GEM</h1>
+                    <div class="logo-sub">
+                        v18.0.0 GLOBAL_WAR <span class="text-gray-500 ml-4" x-text="currentTime"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="bg-black border border-white/10 px-6 py-2 flex flex-col items-center min-w-[120px] rounded-lg">
+                    <span class="text-[9px] text-gray-400 tracking-widest">SYSTEM</span>
+                    <span class="font-bold text-sm" :class="isGraveyardMode ? 'text-neon-red animate-pulse' : 'text-neon-green'">OPTIMAL</span>
+                </div>
+                <div class="bg-black border border-neon-cyan px-6 py-2 flex flex-col items-center min-w-[120px] rounded-lg shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+                    <span class="text-[9px] text-gray-400 tracking-widest">NODES</span>
+                    <span class="font-bold text-xl text-white" x-text="tools.length">0</span>
+                </div>
+                <div class="bg-black border border-neon-pink px-6 py-2 flex flex-col items-center min-w-[120px] rounded-lg shadow-[0_0_15px_rgba(255,0,255,0.2)]">
+                    <span class="text-[9px] text-gray-400 tracking-widest">ARSENAL</span>
+                    <span class="font-bold text-xl" :class="isGraveyardMode ? 'text-white' : 'text-neon-pink'" x-text="savedTools.length">0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2 items-center">
+                 <button @click="highContrast = !highContrast" 
+                         class="p-3 border rounded-lg transition-colors text-white border-white/20 hover:bg-white/10"
+                         title="High Contrast / OLED Mode">
+                    <i class="fas fa-eye"></i>
+                 </button>
+
+                 <div class="h-8 w-px bg-gray-800 mx-2"></div>
+
+                 <button @click="toggleGraveyard()" 
+                 class="px-5 py-3 border text-xs font-bold uppercase transition-all flex items-center gap-2 rounded-lg"
+                 :class="isGraveyardMode ? 'bg-neon-red text-black border-neon-red' : 'border-gray-700 text-gray-500 hover:text-white'">
+                    [ GRAVEYARD ]
+                 </button>
+                 
+                 <button @click="viewMode = 'grid'" class="p-3 border transition-colors rounded-lg" :class="viewMode === 'grid' ? (isGraveyardMode?'text-neon-red border-neon-red':'text-neon-cyan border-neon-cyan') : 'border-gray-700 text-gray-500'"><i class="fas fa-th-large"></i></button>
+                 <button @click="viewMode = 'map'" class="p-3 border transition-colors rounded-lg" :class="viewMode === 'map' ? (isGraveyardMode?'text-neon-red border-neon-red':'text-neon-green border-neon-green') : 'border-gray-700 text-gray-500'"><i class="fas fa-globe"></i></button>
+                 <button @click="viewMode = 'terminal'" class="p-3 border transition-colors rounded-lg" :class="viewMode === 'terminal' ? (isGraveyardMode?'text-neon-red border-neon-red':'text-neon-green border-neon-green') : 'border-gray-700 text-gray-500'"><i class="fas fa-terminal"></i></button>
+            </div>
+        </header>
+
+        <main x-show="viewMode === 'grid'">
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                <div class="lg:col-span-3 glass-panel p-4 rounded-xl relative flex justify-center items-center h-60 border border-white/10">
+                    <canvas id="catChart"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none mt-2">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white" x-text="filteredTools.length"></div>
+                            <div class="text-[8px] text-gray-500 uppercase tracking-widest" x-text="activeFilter === 'ALL' ? 'TOTAL NODES' : 'IN SECTOR'"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-9 flex flex-col gap-4 justify-end">
+                    <div class="glass-panel p-2 flex items-center transition-colors rounded-lg" :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-cyan'">
+                        <div class="px-4 text-gray-500"><i class="fas fa-search"></i></div>
+                        <input type="text" x-model="search" placeholder="QUERY DATABASE..." 
+                               class="w-full bg-transparent border-none text-white focus:ring-0 py-2 font-bold placeholder-gray-700 tracking-wider uppercase text-sm">
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <select x-model="activeFilter" class="bg-black border border-white/20 text-gray-300 text-xs font-bold py-3 px-4 pr-10 focus:border-white outline-none uppercase min-w-[200px] rounded-lg">
+                            <option value="ALL">:: ALL CATEGORIES ::</option>
+                            <template x-for="cat in uniqueCategories"><option :value="cat" x-text="cat"></option></template>
+                        </select>
+
+                        <div class="flex bg-black border border-white/20 rounded-lg overflow-hidden">
+                            <button @click="sortBy = 'NEWEST'" :class="sortBy==='NEWEST'?'bg-white/10 text-white':'text-gray-500'" class="px-5 py-3 text-[10px] font-bold hover:text-white transition-colors">NEWEST</button>
+                            <div class="w-px bg-white/20"></div>
+                            <button @click="sortBy = 'RARITY'" :class="sortBy==='RARITY'?'bg-white/10 text-white':'text-gray-500'" class="px-5 py-3 text-[10px] font-bold hover:text-white transition-colors">RARITY</button>
+                            <div class="w-px bg-white/20"></div>
+                            <button @click="sortBy = 'NAME'" :class="sortBy==='NAME'?'bg-white/10 text-white':'text-gray-500'" class="px-5 py-3 text-[10px] font-bold hover:text-white transition-colors">A-Z</button>
+                        </div>
+
+                        <button @click="showFavorites = !showFavorites" 
+                                :class="showFavorites ? (isGraveyardMode?'bg-neon-red text-black':'bg-neon-pink text-black') : 'bg-black border border-white/20 text-gray-500'"
+                                class="ml-auto px-6 py-3 rounded-lg text-xs font-bold transition-all uppercase tracking-wide">
+                            <i class="fas fa-star mr-2"></i> Arsenal
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <div x-show="isGraveyardMode" class="mb-6 p-4 border border-neon-red bg-red-900/20 text-neon-red text-sm font-bold flex items-center gap-4 animate-pulse rounded-lg shadow-[0_0_15px_#ff0000]">
+                <i class="fas fa-biohazard text-2xl"></i>
+                <div>WARNING: GRAVEYARD SECTOR ACCESSED (404 LINKS)</div>
+            </div>
+
+            <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-20">
+                <template x-for="tool in filteredTools" :key="tool.id">
+                    <div class="cyber-card flex flex-col h-full group"
+                         :class="isGraveyardMode ? 'card-graveyard' : getCardColor(tool.rarity)">
+                        
+                        <div class="absolute top-4 right-4 text-[9px] font-bold px-2 py-1 bg-black border rounded" 
+                             :class="getRiskColor(tool.rarity)">
+                            LVL <span x-text="tool.rarity"></span>
+                        </div>
+
+                        <div class="p-6 flex-grow">
+                            <div class="flex items-center gap-4 mb-4 pr-12">
+                                <div class="tool-icon-box">
+                                    <img :src="getFavicon(tool.url)" onerror="this.src='https://cdn-icons-png.flaticon.com/512/270/270798.png'">
+                                </div>
+                                <div>
+                                    <h2 class="font-bold text-white leading-tight group-hover:text-neon-cyan transition-colors" x-text="tool.name"></h2>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold text-gray-500" x-text="tool.category"></span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-gray-400 leading-relaxed mb-4 h-10 overflow-hidden" x-text="tool.description"></p>
+                            
+                            <button @click="selectedTool = tool; modalOpen = true" 
+                                    class="text-[10px] font-bold uppercase transition-all flex items-center gap-1 hover:text-white"
+                                    :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-cyan'">
+                                + View Full Intel
+                            </button>
+                        </div>
+
+                        <div class="mt-auto flex border-t divide-x bg-black/40"
+                             :class="isGraveyardMode ? 'border-red-900 divide-red-900' : 'border-[#222] divide-[#222]'">
+                            <a :href="tool.url" target="_blank" 
+                               class="flex-grow py-4 text-center text-[10px] font-bold uppercase hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+                               :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-cyan'">
+                               <i class="fas fa-external-link-square-alt"></i> <span x-text="isGraveyardMode ? 'PING' : 'EXECUTE'"></span>
+                            </a>
+                            <button @click="toggleSave(tool)" class="w-14 flex items-center justify-center hover:bg-white/10 transition-colors"
+                                    :class="isSaved(tool.id) ? (isGraveyardMode ? 'text-white' : 'text-neon-pink') : 'text-gray-600'">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </main>
+
+        <section x-show="viewMode === 'map'" class="flex-grow glass-panel rounded-xl border-2 p-4 relative overflow-hidden flex flex-col mb-10 h-[80vh]"
+                 :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-green'">
+            <div class="absolute top-4 left-4 z-10 text-xs font-bold bg-black/80 px-4 py-2 rounded border border-white/20">
+                <span class="text-neon-cyan">LIVE THREAT MAP</span> // REAL-TIME MONITORING
+            </div>
+            <canvas id="globeCanvas" class="w-full h-full"></canvas>
+        </section>
+
+        <section x-show="viewMode === 'terminal'" class="flex-grow glass-panel rounded-xl border-2 p-0 font-mono text-sm relative overflow-hidden flex flex-col mb-10 h-[80vh]"
+                 :class="isGraveyardMode ? 'border-neon-red' : 'border-neon-green'">
+             <div class="border-b p-2 flex justify-between items-center px-4" :class="isGraveyardMode ? 'bg-neon-red/10 border-neon-red' : 'bg-neon-green/10 border-neon-green'">
+                 <span class="font-bold text-xs" :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-green'">ROOT@ZERO_GEM:~</span>
+                 <span class="text-[10px] animate-pulse" :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-green'">SECURE UPLINK ESTABLISHED</span>
+             </div>
+             <div class="flex-grow p-4 overflow-y-auto space-y-1 scrollbar-hide" id="termOutput" @click="$refs.cmdInput.focus()">
+                 <template x-for="line in termHistory">
+                     <div class="break-words">
+                         <div x-show="line.type === 'cmd'" class="mt-2">
+                             <span class="font-bold" :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-green'">root@gemini:~#</span> 
+                             <span class="text-white" x-text="line.text"></span>
+                         </div>
+                         <div x-show="line.type !== 'cmd'" class="pl-0 whitespace-pre-wrap"
+                              :class="{ 'text-neon-cyan': line.type === 'info', 'text-neon-red': line.type === 'error', 'text-gray-400': line.type === 'plain', 'text-white': line.type === 'success' }" x-html="line.text"></div>
+                     </div>
+                 </template>
+             </div>
+             <div class="p-4 border-t bg-black flex items-center" :class="isGraveyardMode ? 'border-neon-red/30' : 'border-neon-green/30'">
+                 <span class="font-bold mr-2" :class="isGraveyardMode ? 'text-neon-red' : 'text-neon-green'">root@gemini:~#</span>
+                 <input x-ref="cmdInput" type="text" x-model="termInput" @keydown.enter="runCmd()" class="bg-transparent border-none focus:outline-none text-white w-full font-bold" autofocus spellcheck="false" autocomplete="off">
+             </div>
+        </section>
+
+    </div>
+
+    <script>
+        const API_URL = "SOURCE_URL";
+
+        // --- MATRIX RAIN ---
+        const matrixC = document.getElementById('matrixCanvas');
+        const matrixCtx = matrixC.getContext('2d');
+        matrixC.width = window.innerWidth; matrixC.height = window.innerHeight;
+        const chars = '01';
+        const drops = Array(Math.floor(matrixC.width/14)).fill(1);
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixC.width, matrixC.height);
+            matrixCtx.fillStyle = '#0F0';
+            matrixCtx.font = '14px monospace';
+            drops.forEach((y, i) => {
+                const text = chars[Math.floor(Math.random()*chars.length)];
+                matrixCtx.fillText(text, i*14, y*14);
+                if(y*14 > matrixC.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawMatrix, 50);
+
+        function cyberApp() {
+            return {
+                booting: true, bootLogs: [], tools: [],
+                savedTools: JSON.parse(localStorage.getItem('zero_gem_arsenal') || '[]'),
+                search: '', activeFilter: 'ALL', sortBy: 'NEWEST', showFavorites: false,
+                loading: true, viewMode: 'grid', isGraveyardMode: false, currentTime: '',
+                highContrast: false,
+                toast: { visible: false, message: '' },
+                
+                modalOpen: false, selectedTool: {}, newComment: '',
+                commentsDB: JSON.parse(localStorage.getItem('zero_gem_comments') || '{}'),
+
+                termInput: '',
+                termHistory: [ { type: 'info', text: 'ZERO_GEM KERNEL v18.0 INITIATED...' }, { type: 'plain', text: 'Type "help" for commands.' } ],
+
+                startSystem() {
+                    let logs = ["KERNEL_INIT...", "LOADING_DB...", "SYSTEM_READY."];
+                    let i = 0;
+                    let int = setInterval(() => {
+                        if(i >= logs.length) { clearInterval(int); setTimeout(() => { this.booting = false; this.fetchTools('live'); this.initGlobe(); }, 400); } 
+                        else { this.bootLogs.push(logs[i]); i++; }
+                    }, 150);
+                    setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-US', { hour12: false }) + " UTC"; }, 1000);
+                },
+
+                async fetchTools(type) {
+                    this.loading = true;
+                    try {
+                        const url = type === 'dead' ? `${API_URL}?type=dead` : API_URL;
+                        const res = await fetch(url);
+                        this.tools = await res.json();
+                        this.initCharts(); 
+                    } catch (e) { console.error(e); }
+                    this.loading = false;
+                },
+
+                toggleGraveyard() {
+                    this.isGraveyardMode = !this.isGraveyardMode;
+                    this.showFavorites = false; 
+                    this.fetchTools(this.isGraveyardMode ? 'dead' : 'live');
+                },
+
+                isSaved(id) { return this.savedTools.some(t => t.id === id); },
+                toggleSave(tool) {
+                    if (this.isSaved(tool.id)) {
+                        this.savedTools = this.savedTools.filter(t => t.id !== tool.id);
+                        this.showToast("REMOVED FROM ARSENAL");
+                    } else {
+                        this.savedTools.push(tool);
+                        this.showToast("ADDED TO ARSENAL");
+                    }
+                    localStorage.setItem('zero_gem_arsenal', JSON.stringify(this.savedTools));
+                },
+                showToast(msg) {
+                    this.toast.message = msg;
+                    this.toast.visible = true;
+                    setTimeout(() => this.toast.visible = false, 3000);
+                },
+                formatDate(d) { return new Date(d).toISOString().split('T')[0]; },
+
+                // --- COLORS ---
+                getCardColor(rarity) {
+                    if(rarity >= 9) return 'card-red';
+                    if(rarity >= 7) return 'card-pink';
+                    return 'card-green';
+                },
+                getRiskColor(r) {
+                    if(this.isGraveyardMode) return 'text-neon-red border-neon-red';
+                    if(r >= 9) return 'text-neon-red border-neon-red';
+                    if(r >= 7) return 'text-neon-pink border-neon-pink';
+                    return 'text-neon-green border-neon-green';
+                },
+                getFavicon(url) {
+                    if (!url) return 'https://cdn-icons-png.flaticon.com/512/270/270798.png';
+                    try { const domain = new URL(url).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } 
+                    catch (e) { return 'https://cdn-icons-png.flaticon.com/512/270/270798.png'; }
+                },
+
+                get uniqueCategories() { return [...new Set(this.tools.map(t => t.category))].sort(); },
+                get filteredTools() {
+                    let filtered = this.tools.filter(t => {
+                        const s = this.search.toLowerCase();
+                        const matchesSearch = t.name.toLowerCase().includes(s) || t.description.toLowerCase().includes(s) || t.category.toLowerCase().includes(s);
+                        const matchesCat = this.activeFilter === 'ALL' || t.category === this.activeFilter;
+                        const matchesFav = this.showFavorites ? this.isSaved(t.id) : true;
+                        return matchesSearch && matchesCat && matchesFav;
+                    });
+                    if (this.sortBy === 'NEWEST') filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    else if (this.sortBy === 'RARITY') filtered.sort((a, b) => b.rarity - a.rarity);
+                    else if (this.sortBy === 'NAME') filtered.sort((a, b) => a.name.localeCompare(b.name));
+                    return filtered;
+                },
+
+                // --- COMMENTS SYSTEM ---
+                getComments(id) { return this.commentsDB[id] || []; },
+                addComment() {
+                    if(!this.newComment.trim()) return;
+                    const id = this.selectedTool.id;
+                    if(!this.commentsDB[id]) this.commentsDB[id] = [];
+                    this.commentsDB[id].push(this.newComment);
+                    localStorage.setItem('zero_gem_comments', JSON.stringify(this.commentsDB));
+                    this.newComment = '';
+                },
+
+                // --- THREAT GLOBE SIMULATION ---
+                initGlobe() {
+                    const canvas = document.getElementById('globeCanvas');
+                    if(!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    let rotation = 0;
+                    
+                    const drawGlobe = () => {
+                        if(this.viewMode !== 'map') { requestAnimationFrame(drawGlobe); return; }
+                        canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+                        const cx = canvas.width/2; const cy = canvas.height/2; const r = Math.min(cx,cy) * 0.7;
+                        
+                        ctx.clearRect(0,0,canvas.width,canvas.height);
+                        ctx.strokeStyle = this.isGraveyardMode ? '#ff0000' : '#00f3ff';
+                        ctx.lineWidth = 1;
+                        
+                        // Draw Sphere
+                        ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+                        
+                        // Draw rotating lines
+                        rotation += 0.005;
+                        for(let i=0; i<8; i++) {
+                            ctx.beginPath();
+                            ctx.ellipse(cx, cy, r * Math.abs(Math.cos(rotation + i)), r, 0, 0, Math.PI*2);
+                            ctx.stroke();
+                        }
+
+                        // Draw Attack Arcs
+                        ctx.strokeStyle = this.isGraveyardMode ? '#ff2a2a' : '#00ff41';
+                        for(let i=0; i<3; i++) {
+                            if(Math.random() > 0.9) {
+                                ctx.beginPath();
+                                ctx.moveTo(cx + (Math.random()-0.5)*r, cy + (Math.random()-0.5)*r);
+                                ctx.lineTo(cx + (Math.random()-0.5)*r, cy + (Math.random()-0.5)*r);
+                                ctx.stroke();
+                            }
+                        }
+                        requestAnimationFrame(drawGlobe);
+                    };
+                    drawGlobe();
+                },
+
+                downloadData() {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.tools, null, 2));
+                    const a = document.createElement('a');
+                    a.href = dataStr; a.download = this.isGraveyardMode ? "archive.json" : "intel.json"; document.body.appendChild(a); a.click(); a.remove();
+                },
+
+                runCmd() {
+                    const raw = this.termInput.trim();
+                    if(!raw) return;
+                    this.termHistory.push({ type: 'cmd', text: raw });
+                    const args = raw.split(' ');
+                    const cmd = args[0].toLowerCase();
+                    const param = args.slice(1).join(' ');
+
+                    switch(cmd) {
+                        case 'help': this.termHistory.push({ type: 'info', text: 'AVAILABLE COMMANDS: list, search <query>, analyze <tool>, stats, whoami, clear, exit' }); break;
+                        case 'list': this.tools.slice(0, 10).forEach(t => this.termHistory.push({ type: 'success', text: `[${t.category}] ${t.name} (Lvl ${t.rarity})` })); break;
+                        case 'search':
+                            if(!param) { this.termHistory.push({type:'error', text:'Usage: search <query>'}); break; }
+                            const results = this.tools.filter(t => t.name.toLowerCase().includes(param.toLowerCase()));
+                            if(results.length===0) this.termHistory.push({type:'warn', text:'No matches found.'});
+                            else results.forEach(t => this.termHistory.push({type:'success', text:`FOUND: ${t.name} -> ${t.url}`}));
+                            break;
+                        case 'analyze':
+                            if(!param) { this.termHistory.push({type:'error', text:'Usage: analyze <tool_name>'}); break; }
+                            const target = this.tools.find(t => t.name.toLowerCase().includes(param.toLowerCase()));
+                            if(!target) this.termHistory.push({type:'error', text:'Tool not found.'});
+                            else this.termHistory.push({type:'info', text:`TARGET: ${target.name}\nCATEGORY: ${target.category}\nRISK: LOW\nURL: ${target.url}`});
+                            break;
+                        case 'stats': this.termHistory.push({type:'info', text:`Nodes: ${this.tools.length} | Cats: ${this.uniqueCategories.length}`}); break;
+                        case 'whoami': this.termHistory.push({type:'success', text:'root (uid=0)'}); break;
+                        case 'clear': this.termHistory = []; break;
+                        case 'exit': this.viewMode = 'grid'; break;
+                        default: this.termHistory.push({ type: 'error', text: `Command '${cmd}' not found.` });
+                    }
+                    this.termInput = '';
+                    this.$nextTick(() => document.getElementById('termOutput').scrollTop = document.getElementById('termOutput').scrollHeight);
+                },
+
+                initCharts() {
+                    setTimeout(() => {
+                        const ctx = document.getElementById('catChart');
+                        if(!ctx) return;
+                        if(window.myChart) window.myChart.destroy();
+                        const counts = {};
+                        this.tools.forEach(t => { counts[t.category] = (counts[t.category] || 0) + 1; });
+                        const colors = ['#00f3ff', '#ff00ff', '#00ff41', '#fcee0a', '#ffffff'];
+                        window.myChart = new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(counts),
+                                datasets: [{ data: Object.values(counts), backgroundColor: colors, borderWidth: 0, hoverOffset: 15 }]
+                            },
+                            options: { 
+                                responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
+                                onClick: (e, els) => { if(els.length > 0) this.activeFilter = Object.keys(counts)[els[0].index]; } 
+                            }
+                        });
+                    }, 100);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
